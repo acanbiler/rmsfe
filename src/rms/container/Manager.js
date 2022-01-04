@@ -1,51 +1,103 @@
 import React from "react";
-import {Container, Divider, Grid, Header, List, Menu, Segment} from "semantic-ui-react";
+import {Container, Header, Menu} from "semantic-ui-react";
 import { toast } from "react-toastify";
 import history from "../../utils/history";
-import {request} from "../../utils/request";
 import IngredientList from "../component/IngredientList";
 import UserList from "../component/UserList";
-
-const endpoints = {
-    fetchIngredientList: () => request.get(`rms/ingredient/list`, {withCredentials: true}),
-    fetchUserList: () => request.get(`rms/user/list`, {withCredentials: true}),
-    addIngredient: ingredient => request.post(`rms/ingredient/add`, ingredient,{withCredentials: true}),
-    addUser: user => request.post(`rms/user/add`, user,{withCredentials: true}),
-}
+import {endpoints} from "../../utils/enpoints";
+import OrderList from "../component/OrderList";
 
 class Manager extends React.Component {
     state = {
         activeMenu: 'ingredientList',
         ingredientList: [],
-        userList: []
+        userList: [],
+        orderList: []
     }
 
     componentDidMount() {
+        this.fetchIngredientList();
+        this.fetchOrderList();
+        this.fetchUserList();
+    };
+
+    fetchOrderList = () => {
+        endpoints.fetchOrderList().then(res => this.setState({orderList: res.data}));
+    };
+
+    fetchIngredientList = () => {
         endpoints.fetchIngredientList().then(res => this.setState({ingredientList: res.data}));
+    };
+
+    fetchUserList = () => {
         endpoints.fetchUserList().then(res => this.setState({userList: res.data}));
-    }
+    };
 
     handleMenuClick = (_e, { name }) => this.setState({
         activeMenu: name
     });
 
-    addUser = userData => {
-
+    addUser = async userData => {
+        try {
+            await endpoints.addUser(userData);
+            toast.success(`User with name: ${userData.name} added.`)
+            this.fetchUserList();
+        } catch (error) {
+            toast.error("Couldn't add user");
+        }
     };
 
-    handleAddIngredientClicked = name => {
+    deleteUser = async userId => {
+        try {
+            await endpoints.deleteUser(userId);
+            toast.success(`User with id: ${userId} added.`)
+            this.fetchUserList();
+        } catch (error) {
+            toast.error("Couldn't delete user");
+        }
+    };
+
+    addIngredient = async ingredient => {
+        try {
+            await endpoints.addIngredient(ingredient);
+
+            toast.success(`Added ${ingredient.name}`);
+            this.fetchIngredientList();
+        } catch (error) {
+            toast.error("Couldn't add ingredient")
+        }
+    };
+
+    handleIncreaseIngredientClicked = async name => {
         const ingredient = {
             name,
             quantity: 10,
         }
 
-        endpoints.addIngredient(ingredient).then(res => toast.success(`10 adet ${name} eklendi`));
+        try {
+            await endpoints.increaseIngredient(ingredient);
+
+            toast.success(`Added 10 ${name}s`);
+            this.fetchIngredientList();
+        } catch (error) {
+            toast.error("Couldn't increase ingredient")
+        }
     };
 
     render() {
-        const { activeMenu, ingredientList, userList } = this.state;
+        const { activeMenu, ingredientList, userList, orderList } = this.state;
 
-        const { handleMenuClick, handleAddIngredientClicked, addUser } = this;
+        const { handleMenuClick, addIngredient, handleIncreaseIngredientClicked, addUser, deleteUser } = this;
+
+        const actions = {
+            addUser,
+            deleteUser
+        };
+
+        const ingrActions = {
+            addIngredient,
+            handleIncreaseIngredientClicked
+        };
 
         return (
             <div>
@@ -60,7 +112,7 @@ class Manager extends React.Component {
                             active={activeMenu === 'ingredientList'}
                             onClick={handleMenuClick}
                         >
-                            Ingredient List
+                            Ingredients
                         </Menu.Item>
                         <Menu.Item
                             as='a'
@@ -68,7 +120,7 @@ class Manager extends React.Component {
                             active={activeMenu === 'userList'}
                             onClick={handleMenuClick}
                         >
-                            User List
+                            Users
                         </Menu.Item>
                         <Menu.Item
                             as='a'
@@ -76,7 +128,7 @@ class Manager extends React.Component {
                             active={activeMenu === 'orderList'}
                             onClick={handleMenuClick}
                         >
-                            User List
+                            Orders
                         </Menu.Item>
                         <Menu.Item
                             as='a'
@@ -92,16 +144,21 @@ class Manager extends React.Component {
                 {activeMenu === 'ingredientList' && (
                     <Container text style={{ marginTop: '7em' }}>
                         <Header as='h1'>Ingredient List</Header>
-                        <IngredientList tableData={ingredientList} action={handleAddIngredientClicked}/>
+                        <IngredientList userType='manager' tableData={ingredientList} actions={ingrActions}/>
                     </Container>
                 )}
                 {activeMenu === 'userList' && (
                     <Container text style={{ marginTop: '7em' }}>
                         <Header as='h1'>User List</Header>
-                        <UserList tableData={userList} />
+                        <UserList tableData={userList} actions={actions} />
                     </Container>
                 )}
-
+                {activeMenu === 'orderList' && (
+                    <Container text style={{ marginTop: '7em' }}>
+                        <Header as='h1'>Order List</Header>
+                        <OrderList userType='manager' tableData={orderList} />
+                    </Container>
+                )}
             </div>
         );
     }

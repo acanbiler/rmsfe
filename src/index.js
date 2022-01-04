@@ -4,10 +4,13 @@ import './index.css';
 import reportWebVitals from './reportWebVitals';
 import {Route, Router, Switch, withRouter} from "react-router-dom";
 import {ToastContainer} from "react-toastify";
+import 'react-toastify/dist/ReactToastify.min.css';
 import Login from "./rms/container/Login";
 import history from "./utils/history";
 import 'semantic-ui-css/semantic.min.css';
 import Manager from "./rms/container/Manager";
+import Server from "./rms/container/Server";
+import Cook from "./rms/container/Cook";
 
 ReactDOM.render(
     <>
@@ -22,12 +25,14 @@ ReactDOM.render(
             draggable
             pauseOnHover
         />
-        <Router history={history}>
-            <Switch>
-                <Route exact path="/" component={withRouter(Login)}/>
-                <Route path="/manager-panel" component={withRouter(Manager)}/>
-            </Switch>
-        </Router>
+            <Router history={history}>
+                <Switch>
+                    <Route exact path="/" component={withRouter(Login)}/>
+                    <Route path="/manager-panel" component={withRouter(Manager)}/>
+                    <Route path="/cook-panel" component={withRouter(Cook)}/>
+                    <Route path="/server-panel" component={withRouter(Server)}/>
+                </Switch>
+            </Router>
         <ToastContainer />
     </>,
     document.getElementById('root')

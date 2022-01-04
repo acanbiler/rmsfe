@@ -3,10 +3,16 @@ import {Button, Form, Table} from "semantic-ui-react";
 import produce from "immer";
 import _ from "lodash";
 
+const roleOptions = [
+    { key: 1, text: 'Manager', value :1 },
+    { key: 2, text: 'Cook', value :2 },
+    { key: 3, text: 'Server', value :3 },
+]
 class UserList extends React.Component {
     state = {
         newUser: false,
-        user: null
+        user: null,
+        userIdToDelete: ''
     }
 
     handleFormChange = (_e, { name, value }) => {
@@ -18,17 +24,18 @@ class UserList extends React.Component {
     };
 
     render() {
-        const { tableData, addUser } = this.props;
+        const { tableData, actions } = this.props;
 
         const { user } = this.state;
 
         const { handleFormChange } = this;
 
-        const headerRow = ['Name', 'Role']
+        const headerRow = ['Id', 'Name', 'Role']
 
-        const renderBodyRow = ({ name, role }, i) => ({
-            key: name || `row-${i}`,
+        const renderBodyRow = ({ id, name, role }, i) => ({
+            key: id,
             cells: [
+                id,
                 name || 'No name specified',
                 role ? { key: 'role', content: role === 1 ? 'manager' : role === 2 ? 'cook' : 'server'} : 'Unknown',
             ],
@@ -42,6 +49,23 @@ class UserList extends React.Component {
                     renderBodyRow={renderBodyRow}
                     tableData={tableData}
                 />
+                <>
+                    <Form style={{ marginTop: '1em' }}>
+                        <Form.Group widths='equal'>
+                            <Form.Input
+                                placeholder='User ID'
+                                name="userIdToDelete"
+                                value={this.state.userIdToDelete}
+                                onChange={(_e, {name, value}) => handleFormChange(null, {name, value})}
+                            />
+                            <Form.Button
+                                color='red'
+                                content="Delete User"
+                                onClick={() => actions.deleteUser(this.state.userIdToDelete)}
+                            />
+                        </Form.Group>
+                    </Form>
+                </>
                 <Button
                     primary
                     content="New User"
@@ -49,35 +73,39 @@ class UserList extends React.Component {
                 />
                 {this.state.newUser && (
                     <Form style={{ marginTop: '1em' }}>
-                        <Form.Field>
-                            <Form.Input
-                                label="Name"
-                                name="name"
-                                value={_.get(user, 'name', '')}
-                                onBlur={(_e, name, value) => handleFormChange(null, {name, value})}
-                            />
-                        </Form.Field>
-                        <Form.Field>
-                            <Form.Input
-                                label="Password"
-                                name="password"
-                                value={_.get(user, 'password', '')}
-                                onBlur={(_e, name, value) => handleFormChange(null, {name, value})}
-                            />
-                        </Form.Field>
-                        <Form.Field>
-                            <Form.Input
-                                label="Role"
-                                name="role"
-                                value={_.get(user, 'role', '')}
-                                onBlur={(_e, name, value) => handleFormChange(null, {name, value})}
-                            />
-                        </Form.Field>
+                        <Form.Group widths='equal'>
+                            <Form.Field>
+                                <Form.Input
+                                    placeholder="Name"
+                                    name="user.name"
+                                    value={_.get(user, 'name', '')}
+                                    onChange={(_e, {name, value}) => handleFormChange(null, {name, value})}
+                                />
+                            </Form.Field>
+                            <Form.Field>
+                                <Form.Input
+                                    placeholder="Password"
+                                    name="user.password"
+                                    value={_.get(user, 'password', '')}
+                                    onChange={(_e, {name, value}) => handleFormChange(null, {name, value})}
+                                />
+                            </Form.Field>
+                            <Form.Field>
+                                <Form.Dropdown
+                                    placeholder="Choose role"
+                                    name="role"
+                                    options={roleOptions}
+                                    selection
+                                    value={_.get(user, 'role', '')}
+                                    onChange={(_e, {value}) => handleFormChange(null, {name:'user.role', value})}
+                                />
+                            </Form.Field>
+                        </Form.Group>
                         <Form.Button
                             floated='right'
                             secondary
                             content="Add User"
-                            onClick={() => addUser(user)}
+                            onClick={() => actions.addUser(user)}
                         />
                     </Form>
                 )}
