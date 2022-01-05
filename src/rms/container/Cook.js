@@ -19,12 +19,17 @@ class Cook extends React.Component {
 
     componentDidMount() {
         this.fetchIngredientList();
-        endpoints.fetchOrderList().then(res => this.setState({orderList: res.data}))
+        this.fetchOrderList();
     }
+
+    fetchOrderList = () => {
+        endpoints.fetchOrderList().then(res => this.setState({orderList: res.data}))
+    };
 
     fetchIngredientList = () => {
         endpoints.fetchIngredientList().then(res => this.setState({ingredientList: res.data}));
-    }
+    };
+
     handleMenuClick = (_e, { name }) => this.setState({
         activeMenu: name
     });
@@ -87,12 +92,42 @@ class Cook extends React.Component {
         }
     };
 
+    advanceOrder = async orderId => {
+        try {
+            const res = await endpoints.advanceOrder(orderId);
+
+            if (res.data)
+                toast.success(`Order ID: ${orderId} advanced!`);
+            else
+                toast.info(`Order ID: ${orderId} cannot be advanced anymore!`);
+            this.fetchOrderList();
+        } catch (error) {
+            toast.error("Couldn't advance order")
+        }
+    }
+
+    revertOrder = async orderId => {
+        try {
+            const res = await endpoints.revertOrder(orderId);
+
+            if (res.data)
+                toast.success(`Order ID: ${orderId} reverted!`);
+            else
+                toast.info(`Order ID: ${orderId} cannot be reverted anymore!`);
+            this.fetchOrderList();
+        } catch (error) {
+            toast.error("Couldn't revert order")
+        }
+    }
+
     render() {
         const { activeMenu, ingredientList, orderList, pizza } = this.state;
 
-        const { handleMenuClick, consumeIngredient, handlePizzaChange, order } = this;
+        const { handleMenuClick, consumeIngredient, handlePizzaChange, order, advanceOrder, revertOrder } = this;
 
-        const actions = { consumeIngredient };
+        const ingrActions = { consumeIngredient };
+
+        const orderActions = { advanceOrder, revertOrder };
 
         return (
             <div>
@@ -138,13 +173,13 @@ class Cook extends React.Component {
                 {activeMenu === 'orderList' && (
                     <Container text style={{ marginTop: '7em' }}>
                         <Header as='h1'>Order List</Header>
-                        <OrderList userType='cook' tableData={orderList} />
+                        <OrderList userType='cook' tableData={orderList} actions={orderActions} />
                     </Container>
                 )}
                 {activeMenu === 'ingredientList' && (
                     <Container text style={{ marginTop: '7em' }}>
                         <Header as='h1'>Ingredient List</Header>
-                        <IngredientList userType='cook' tableData={ingredientList} actions={actions}/>
+                        <IngredientList userType='cook' tableData={ingredientList} actions={ingrActions}/>
                     </Container>
                 )}
                 {activeMenu === 'pizzaMenu' && (

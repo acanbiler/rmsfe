@@ -104,35 +104,39 @@ class OrderList extends React.Component {
                     tableData={tableData}
                 />
                 <Divider hidden />
-                <Header as='h3'>Change Order Status</Header>
-                <Form>
-                    <Form.Group widths = 'equal'>
-                        <Form.Field>
-                            <Form.Input
-                                name='orderIdToChange'
-                                placeholder='Order ID'
-                                value={this.state.orderIdToChange}
-                                onChange={(_e, { value}) => handleFormChange(null, {name: 'orderIdToChange', value})}
-                            />
-                        </Form.Field>
-                        <Form.Field>
-                            <Form.Button
-                                content='Revert'
-                                icon='left arrow'
-                                labelPosition='left'
-                                onClick={() => actions.revertOrder(this.state.orderIdToChange)}
-                            />
-                        </Form.Field>
-                        <Form.Field>
-                            <Form.Button
-                                content='Advance'
-                                icon='right arrow'
-                                labelPosition='right'
-                                onClick={() => actions.advanceOrder(this.state.orderIdToChange)}
-                            />
-                        </Form.Field>
-                    </Form.Group>
-                </Form>
+                {userType !== 'manager' && (
+                    <>
+                        <Header as='h3'>Change Order Status</Header>
+                        <Form>
+                            <Form.Group widths = 'equal'>
+                                <Form.Field>
+                                    <Form.Input
+                                        name='orderIdToChange'
+                                        placeholder='Order ID'
+                                        value={this.state.orderIdToChange}
+                                        onChange={(_e, { value}) => handleFormChange(null, {name: 'orderIdToChange', value})}
+                                    />
+                                </Form.Field>
+                                <Form.Field>
+                                    <Form.Button
+                                        content='Revert'
+                                        icon='left arrow'
+                                        labelPosition='left'
+                                        onClick={() => actions.revertOrder(this.state.orderIdToChange)}
+                                    />
+                                </Form.Field>
+                                <Form.Field>
+                                    <Form.Button
+                                        content='Advance'
+                                        icon='right arrow'
+                                        labelPosition='right'
+                                        onClick={() => actions.advanceOrder(this.state.orderIdToChange)}
+                                    />
+                                </Form.Field>
+                            </Form.Group>
+                        </Form>
+                    </>
+                )}
             </>
         );
     }

@@ -5,10 +5,20 @@ import { toast } from "react-toastify";
 import {endpoints} from "../../utils/enpoints";
 import _ from "lodash";
 import OrderList from "../component/OrderList";
+import Baverages from "../component/Baverages";
+import produce from "immer";
 
 class Server extends React.Component {
     state = {
-        orderList: []
+        activeMenu: 'orderList',
+        orderList: [],
+        baverage: '',
+        baverageState: '',
+        coffee: {
+            mocha: false,
+            milk: false,
+            whip: false
+        },
     }
 
     componentDidMount() {
@@ -25,6 +35,29 @@ class Server extends React.Component {
         }
     }
 
+    handleMenuClick = (_e, { name }) => this.setState({
+        activeMenu: name
+    });
+
+    handleBaverageSelected = (_e, { name, value }) => {
+        this.setState(
+            produce(draft => {_.set(draft, name, value);})
+        );
+    };
+
+    prepareBaverage = () => {
+        const { baverage, coffee } = this.state;
+        if (baverage !== 'coffee') {
+            endpoints.prepareBaverage(baverage)
+                .then(res => this.setState({ baverageState: res.data }))
+                .catch(err => this.setState({ baverageState: "Baverage spilled." }));
+        } else {
+            endpoints.prepareCoffee(coffee)
+                .then(res => this.setState({ baverageState: res.data }))
+                .catch(err => this.setState({ baverageState: "Baverage spilled." }));
+        }
+    };
+
     addOrder = async order => {
         try {
             await endpoints.placeOrder(order);
@@ -34,34 +67,47 @@ class Server extends React.Component {
         } catch (error) {
             toast.error("Couldn't add order");
         }
-    }
+    };
 
     advanceOrder = async orderId => {
         try {
-            await endpoints.advanceOrder(orderId);
+            const res = await endpoints.advanceOrder(orderId);
 
-            toast.success(`Order ID: ${orderId} advanced!`);
+            if (res.data)
+                toast.success(`Order ID: ${orderId} advanced!`);
+            else
+                toast.info(`Order ID: ${orderId} cannot be advanced anymore!`);
             this.fetchOrderList();
         } catch (error) {
             toast.error("Couldn't advance order")
         }
-    }
+    };
 
     revertOrder = async orderId => {
         try {
-            await endpoints.revertOrder(orderId);
+            const res = await endpoints.revertOrder(orderId);
 
-            toast.success(`Order ID: ${orderId} reverted!`);
+            if (res.data)
+                toast.success(`Order ID: ${orderId} reverted!`);
+            else
+                toast.info(`Order ID: ${orderId} cannot be reverted anymore!`);
             this.fetchOrderList();
         } catch (error) {
             toast.error("Couldn't revert order")
         }
-    }
+    };
 
     render() {
-        const { orderList } = this.state;
+        const { orderList, activeMenu, baverage, baverageState, coffee } = this.state;
 
-        const { addOrder, advanceOrder, revertOrder } = this;
+        const {
+            addOrder,
+            advanceOrder,
+            revertOrder,
+            handleMenuClick,
+            handleBaverageSelected,
+            prepareBaverage,
+        } = this;
 
         const actions = {
             addOrder,
@@ -79,8 +125,18 @@ class Server extends React.Component {
                         <Menu.Item
                             as='a'
                             name='orderList'
+                            active={activeMenu === 'orderList'}
+                            onClick={handleMenuClick}
                         >
                             Orders
+                        </Menu.Item>
+                        <Menu.Item
+                            as='a'
+                            name='baveragesList'
+                            active={activeMenu === 'baveragesList'}
+                            onClick={handleMenuClick}
+                        >
+                            Baverages
                         </Menu.Item>
                         <Menu.Item
                             as='a'
@@ -92,10 +148,24 @@ class Server extends React.Component {
                         </Menu.Item>
                     </Container>
                 </Menu>
-                <Container text style={{ marginTop: '7em' }}>
-                    <Header as='h1'>Order List</Header>
-                    <OrderList userType='server' tableData={orderList} actions={actions} />
-                </Container>
+                {activeMenu === 'orderList' && (
+                    <Container text style={{ marginTop: '7em' }}>
+                        <Header as='h1'>Order List</Header>
+                        <OrderList userType='server' tableData={orderList} actions={actions} />
+                    </Container>
+                )}
+                {activeMenu === 'baveragesList' && (
+                    <Container text style={{ marginTop: '7em' }}>
+                        <Header as='h1'>Baverages</Header>
+                        <Baverages
+                            baverage={baverage}
+                            baverageState={baverageState}
+                            handleFormChange={handleBaverageSelected}
+                            prepareBaverage={prepareBaverage}
+                            coffee={coffee}
+                        />
+                    </Container>
+                )}
             </div>
         );
     }

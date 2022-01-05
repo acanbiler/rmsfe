@@ -12,5 +12,7 @@ export const endpoints = {
     placeOrder: order => request.post(`rms/order/place`, order, {withCredentials: true}),
     advanceOrder: orderId => request.post(`rms/order/advance/${orderId}`, {withCredentials:true}),
     revertOrder: orderId => request.post(`rms/order/revert/${orderId}`, {withCredentials:true}),
-    bakePizza: pizza => request.post(`rms/order/pizza`, pizza, {withCredentials: true})
+    bakePizza: pizza => request.post(`rms/order/pizza`, pizza, {withCredentials: true}),
+    prepareBaverage: baverage => request.post(`rms/order/baverage/${baverage}`, {withCredentials: true}),
+    prepareCoffee: coffee => request.post(`rms/order/coffee`, coffee, {withCredentials: true})
 }
